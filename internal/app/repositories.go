@@ -13,10 +13,10 @@ type repositories struct {
 	newsRepo newsAgr.Repository
 }
 
-func initPgsqlRepositories(cfg mysqlRepository.Config) (*repositories, func(), error) {
+func initMysqlRepositories(cfg mysqlRepository.Config) (*repositories, func(), error) {
 	factory, err := mysqlRepository.InitFactory(cfg)
 	if err != nil {
-		return nil, nil, fmt.Errorf("pgsqlRepository.InitFactory: %w", err)
+		return nil, nil, fmt.Errorf("mysqlRepository.InitFactory: %w", err)
 	}
 
 	rs := &repositories{
@@ -25,7 +25,7 @@ func initPgsqlRepositories(cfg mysqlRepository.Config) (*repositories, func(), e
 
 	closer := func() {
 		if err := factory.Close(); err != nil {
-			logrus.Error("Закрыть соединение с pgsql: factory.Close: " + err.Error())
+			logrus.Error("Закрыть соединение с mysql: factory.Close: " + err.Error())
 		}
 	}
 

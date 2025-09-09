@@ -19,7 +19,7 @@ func Run(ctx context.Context, cfg Config) error {
 	logrus.Info(fmt.Sprintf("Уровень логирования: %s", cfg.LogLevel))
 
 	// Инициализация репозиториев
-	rr, closeRepos, err := initPgsqlRepositories(cfg.Mysql)
+	rr, closeRepos, err := initMysqlRepositories(cfg.Mysql)
 	if err != nil {
 		return err
 	}

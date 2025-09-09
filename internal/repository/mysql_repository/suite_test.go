@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"testing"
 	"time"
 
 	testifySuite "github.com/stretchr/testify/suite"
@@ -20,6 +21,10 @@ type Suite struct {
 	RR            struct {
 		News newsAgr.Repository
 	}
+}
+
+func Test_Suite(t *testing.T) {
+	testifySuite.Run(t, new(Suite))
 }
 
 var (
@@ -38,16 +43,15 @@ func (suite *Suite) newMysqlExternalFactory(dsn string) (*Factory, func()) {
 
 // newMysqlContainerFactory создает фабрику репозиториев для тестирования, реализованных с помощью postgres контейнеров
 func (suite *Suite) newMysqlContainerFactory() (f *Factory, closer func()) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
 	defer cancel()
 
 	// Поиск скриптов с миграциями
 	_, b, _, _ := runtime.Caller(0)
-	migrationsDir := filepath.Join(filepath.Dir(b), "../../../infra/mysql/init/*.up.sql")
+	migrationsDir := filepath.Join(filepath.Dir(b), "../../../infra/mysql/init/*.sql")
 	migrations, err := filepath.Glob(migrationsDir)
 	suite.Require().NoError(err)
 	suite.Require().NotZero(migrations)
-
 	container, err := mysql.Run(ctx,
 		"mysql:9.4",
 		mysql.WithScripts(migrations...),

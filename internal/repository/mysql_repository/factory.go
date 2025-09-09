@@ -32,7 +32,7 @@ func InitFactory(cfg Config) (*Factory, error) {
 		return nil, fmt.Errorf("conn.Ping: %w", err)
 	}
 
-	logrus.Info("Успешно подключен к PostgreSQL")
+	logrus.Info("Успешно подключен к базе данных")
 
 	return &Factory{
 		db: conn,
@@ -47,7 +47,7 @@ func (f *Factory) Close() error {
 // Cleanup очищает все сохраненные записи
 func (f *Factory) Cleanup() error {
 	var dbName string
-	err := f.db.QueryRow("SELECT current_database()").Scan(&dbName)
+	err := f.db.QueryRow("SELECT DATABASE()").Scan(&dbName)
 	if err != nil {
 		return fmt.Errorf("не удалось получить имя базы данных: %w", err)
 	}

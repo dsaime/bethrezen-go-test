@@ -55,7 +55,7 @@ func waitInterrupt(cancel context.CancelFunc) {
 func initCliCommand() *cli.Command {
 	var cfg app.Config
 	return &cli.Command{
-		Name: "npchat",
+		Name: "newsapi",
 		Action: func(ctx context.Context, command *cli.Command) error {
 			return app.Run(ctx, cfg)
 		},
@@ -64,7 +64,7 @@ func initCliCommand() *cli.Command {
 			&cli.StringFlag{
 				Name:        "mysql-dsn",
 				Destination: &cfg.Mysql.DSN,
-				Usage:       "Строка подключения MySQL в формате 'mysql://username:password@hostname:port/database?param1=value1&param2=value2'",
+				Usage:       "Строка подключения MySQL в формате '[username[:password]@][protocol[(address)]]/dbname[?param1=value1&...]'",
 				Required:    true,
 			},
 			&cli.StringFlag{

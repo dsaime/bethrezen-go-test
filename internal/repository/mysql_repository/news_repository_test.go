@@ -1,17 +1,16 @@
 package mysqlRepository
 
-func (suite *Suite) TestNewsRepository_Find() {
+func (suite *Suite) TestNewsRepository() {
+	suite.Run("Find", func() {
 
-}
+	})
+	suite.Run("InTransaction", func() {
 
-func (suite *Suite) TestNewsRepository_InTransaction() {
+	})
+	suite.Run("List", func() {
 
-}
+	})
+	suite.Run("Upsert", func() {
 
-func (suite *Suite) TestNewsRepository_List() {
-
-}
-
-func (suite *Suite) TestNewsRepository_Upsert() {
-
+	})
 }
