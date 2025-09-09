@@ -13,11 +13,14 @@ import (
 
 func upsertReturnsSameID(repo *mockNewsAgr.Repository) *mock.Call {
 	return repo.On("Upsert", mock.Anything).
-		Return(func(n newsAgr.News) (int, error) { return n.ID, nil }, nil)
+		Return(func(n newsAgr.News) (int, error) { return n.ID, nil })
 }
 
 func inTxReturnsMock(repo *mockNewsAgr.Repository) {
-	repo.On("InTransaction", mock.Anything, mock.Anything).Return(repo, nil)
+	repo.On("InTransaction", mock.Anything).
+		Return(func(fn func(newsAgr.Repository) error) error {
+			return fn(repo)
+		})
 }
 
 func findReturnsExpected(repo *mockNewsAgr.Repository, news newsAgr.News) {

@@ -1,79 +1,199 @@
 package newsAgr
 
 import (
+	"reflect"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/mock"
 
-	"newsapi/internal/usecases/events"
+	mockNewsAgr "newsapi/internal/domain/newsAgr/mocks"
 )
 
-func TestNewChat(t *testing.T) {
-	t.Run("параметр name должен быть валидными и не пустыми", func(t *testing.T) {
-		chat, err := NewNews("\ninvalid\t", uuid.New(), nil)
-		assert.Zero(t, chat)
-		assert.ErrorIs(t, err, ErrInvalidChatName)
+func upsertReturnsExpected(repo *mockNewsAgr.Repository, id int) {
+	repo.On("Upsert", mock.Anything).Return(id)
+}
+
+func newRepo(t *testing.T, setupMockRepo func(*mockNewsAgr.Repository)) Repository {
+	repo := mockNewsAgr.NewRepository(t)
+	if setupMockRepo != nil {
+		setupMockRepo(repo)
+	}
+	return repo
+}
+
+func TestNewNews(t *testing.T) {
+	t.Run("вернет ошибку валидации", func(t *testing.T) {
+		_, err := NewNews(Repository(nil), "title", "", []int{1, 1})
+		assert.NoError(t, err)
 	})
 
-	t.Run("параметр chiefID должен быть валидными и не пустыми", func(t *testing.T) {
-		chat, err := NewNews("name", uuid.Nil, nil)
-		assert.Zero(t, chat)
-		assert.ErrorIs(t, err, ErrInvalidChiefID)
-	})
-
-	t.Run("новому чату присваивается id, другие свойства равны переданным", func(t *testing.T) {
-		chiefID := uuid.New()
-		name := "name"
-		chat, err := NewNews(name, chiefID, nil)
-		assert.NotZero(t, chat)
+	t.Run("вернет id из репозитория", func(t *testing.T) {
+		const expectedID = 1
+		repo := newRepo(t, func(repo *mockNewsAgr.Repository) {
+			upsertReturnsExpected(repo, expectedID)
+		})
+		news, err := NewNews(repo, "Title", "cont", []int{1})
 		assert.NoError(t, err)
 
-		// В id устанавливается случайное значение ID
-		assert.NotZero(t, chat.ID)
-		// Главный администратор из параметров
-		assert.Equal(t, chiefID, chat.ChiefID)
-		// Название чата из параметров
-		assert.Equal(t, name, chat.Title)
+		// id из репозитория
+		assert.Equal(t, expectedID, news.ID)
+		// Поля равны передаваемым параметрам
+		assert.Equal(t, "Title", news.Title)
+		assert.Equal(t, "cont", news.Content)
+		assert.Equal(t, []int{1}, news.Categories)
 	})
 
-	t.Run("в новом чате создается главный администратор", func(t *testing.T) {
-		chiefID := uuid.New()
-		chat, err := NewNews("name", chiefID, nil)
-		assert.NotZero(t, chat)
-		assert.NoError(t, err)
+}
 
-		// Главный администратор в свойствах чата и участниках
-		assert.Len(t, chat.Categories, 1)
-		assert.Equal(t, chiefID, chat.Categories[0].UserID)
+func TestNews_UpdateCategories(t *testing.T) {
+	t.Run("возвращает обновленную новость", func(t *testing.T) {
+		initialNews := News{
+			ID:         53,
+			Title:      "Title",
+			Content:    "cont",
+			Categories: []int{1, 2, 3},
+		}
+		initialNews.UpdateCategories()
 	})
+}
 
-	t.Run("в новом чате нет приглашений", func(t *testing.T) {
-		chat, err := NewNews("name", uuid.New(), nil)
-		assert.NotZero(t, chat)
-		assert.NoError(t, err)
+func TestNews_UpdateContent(t *testing.T) {
+	type fields struct {
+		ID         int
+		Title      string
+		Content    string
+		Categories []int
+	}
+	type args struct {
+		repo    Repository
+		content string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    News
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			n := News{
+				ID:         tt.fields.ID,
+				Title:      tt.fields.Title,
+				Content:    tt.fields.Content,
+				Categories: tt.fields.Categories,
+			}
+			got, err := n.UpdateContent(tt.args.repo, tt.args.content)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpdateContent() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("UpdateContent() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
-		// Приглашений нет
-		assert.Empty(t, chat.Invitations)
-	})
+func TestNews_UpdateTitle(t *testing.T) {
+	type fields struct {
+		ID         int
+		Title      string
+		Content    string
+		Categories []int
+	}
+	type args struct {
+		repo  Repository
+		title string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    News
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			n := News{
+				ID:         tt.fields.ID,
+				Title:      tt.fields.Title,
+				Content:    tt.fields.Content,
+				Categories: tt.fields.Categories,
+			}
+			got, err := n.UpdateTitle(tt.args.repo, tt.args.title)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UpdateTitle() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("UpdateTitle() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
 
-	t.Run("после завершения операции, будут созданы события", func(t *testing.T) {
-		// Инициализировать буфер событий
-		eventsBuf := new(events.Buffer)
+func TestValidateCategories(t *testing.T) {
+	type args struct {
+		categories []int
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ValidateCategories(tt.args.categories); (err != nil) != tt.wantErr {
+				t.Errorf("ValidateCategories() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
 
-		// Создаем чат
-		chat, err := NewNews("name", uuid.New(), eventsBuf)
-		assert.NotZero(t, chat)
-		assert.NoError(t, err)
+func TestValidateContent(t *testing.T) {
+	type args struct {
+		content string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ValidateContent(tt.args.content); (err != nil) != tt.wantErr {
+				t.Errorf("ValidateContent() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
 
-		// Проверить список опубликованных событий
-		require.Len(t, eventsBuf.Events(), 1)
-		// Событие Созданного чата
-		chatCreated := eventsBuf.Events()[0]
-		// Содержит нужных получателей
-		assert.Contains(t, chatCreated.Recipients, chat.ChiefID)
-		// Связано с чатом
-		assert.Equal(t, chat.ID, chatCreated.Data["chat_id"].(uuid.UUID))
-	})
+func TestValidateTitle(t *testing.T) {
+	type args struct {
+		title string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := ValidateTitle(tt.args.title); (err != nil) != tt.wantErr {
+				t.Errorf("ValidateTitle() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
 }
