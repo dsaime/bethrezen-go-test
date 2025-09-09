@@ -56,7 +56,7 @@ func (f *Factory) Cleanup() error {
 	}
 
 	// Список таблиц для очистки
-	tables := []string{"sessions", "oauth_users", "users", "participants", "invitations", "chats"}
+	tables := []string{"News", "NewsCategories"}
 
 	return sqlxRepo.New(f.db).InTransaction(func(tx sqlxRepo.SqlxRepo) error {
 		for _, table := range tables {
