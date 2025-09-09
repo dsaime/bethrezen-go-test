@@ -19,43 +19,43 @@ func initUsecases(rr *repositories, aa *adapters) usecasesBase {
 			Repo: rr.sessions,
 		},
 		AcceptInvitationUsecase: &acceptInvitation.AcceptInvitationUsecase{
-			Repo:          rr.chats,
+			Repo:          rr.newsRepo,
 			EventConsumer: aa.eventBus,
 		},
 		CancelInvitationUsecase: &cancelInvitation.CancelInvitationUsecase{
-			Repo:          rr.chats,
+			Repo:          rr.newsRepo,
 			EventConsumer: aa.eventBus,
 		},
 		ChatInvitationsUsecase: &chatInvitations.ChatInvitationsUsecase{
-			Repo: rr.chats,
+			Repo: rr.newsRepo,
 		},
 		ChatMembersUsecase: &chatMembers.ChatMembersUsecase{
-			Repo: rr.chats,
+			Repo: rr.newsRepo,
 		},
 		CreateChatUsecase: &createChat.CreateChatUsecase{
-			Repo:          rr.chats,
+			Repo:          rr.newsRepo,
 			EventConsumer: aa.eventBus,
 		},
 		DeleteMemberUsecase: &deleteMember.DeleteMemberUsecase{
-			Repo:          rr.chats,
+			Repo:          rr.newsRepo,
 			EventConsumer: aa.eventBus,
 		},
 		LeaveChatUsecase: &leaveChat.LeaveChatUsecase{
-			Repo:          rr.chats,
+			Repo:          rr.newsRepo,
 			EventConsumer: aa.eventBus,
 		},
 		MyChatsUsecase: &myChats.MyChatsUsecase{
-			Repo: rr.chats,
+			Repo: rr.newsRepo,
 		},
 		ReceivedInvitationsUsecase: &receivedInvitations.ReceivedInvitationsUsecase{
-			Repo: rr.chats,
+			Repo: rr.newsRepo,
 		},
 		SendInvitationUsecase: &sendInvitation.SendInvitationUsecase{
-			Repo:          rr.chats,
+			Repo:          rr.newsRepo,
 			EventConsumer: aa.eventBus,
 		},
 		UpdateNameUsecase: &updateName.UpdateNameUsecase{
-			Repo:          rr.chats,
+			Repo:          rr.newsRepo,
 			EventConsumer: aa.eventBus,
 		},
 		BasicAuthRegistrationUsecase: &basicAuthRegistration.BasicAuthRegistrationUsecase{

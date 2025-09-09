@@ -7,16 +7,30 @@ import (
 	"github.com/lib/pq"
 	"github.com/nullism/bqb"
 
-	"newsapi/internal/domain/chatt"
 	"newsapi/internal/domain/newsAgr"
 	sqlxRepo "newsapi/internal/repository/mysql_repository/sqlx_repo"
 )
 
-type ChattRepository struct {
+type NewsRepository struct {
 	sqlxRepo.SqlxRepo
 }
 
-func (r *ChattRepository) List(filter newsAgr.Filter) ([]newsAgr.Chat, error) {
+func (r *NewsRepository) Find(filter newsAgr.Filter) (newsAgr.News, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *NewsRepository) List(filter newsAgr.Filter) ([]newsAgr.News, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *NewsRepository) Upsert(news newsAgr.News) (id int, _ error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *NewsRepository) List(filter newsAgr.Filter) ([]newsAgr.Chat, error) {
 	sel := bqb.New("SELECT c.* FROM chats c")
 	where := bqb.Optional("WHERE")
 
@@ -100,7 +114,7 @@ func (r *ChattRepository) List(filter newsAgr.Filter) ([]newsAgr.Chat, error) {
 	return toDomainChats(chats, participantsMap, invitationsMap), nil
 }
 
-func (r *ChattRepository) Upsert(chat newsAgr.Chat) error {
+func (r *NewsRepository) Upsert(chat newsAgr.Chat) error {
 	if chat.ID == uuid.Nil {
 		return fmt.Errorf("chat ID is required")
 	}
@@ -114,7 +128,7 @@ func (r *ChattRepository) Upsert(chat newsAgr.Chat) error {
 	}
 }
 
-func (r *ChattRepository) upsert(chat newsAgr.Chat) error {
+func (r *NewsRepository) upsert(chat newsAgr.Chat) error {
 	if _, err := r.DB().NamedExec(`
 		INSERT INTO chats(id, name, chief_id) 
 		VALUES (:id, :name, :chief_id)
@@ -160,9 +174,9 @@ func (r *ChattRepository) upsert(chat newsAgr.Chat) error {
 	return nil
 }
 
-func (r *ChattRepository) InTransaction(fn func(txRepo newsAgr.Repository) error) error {
+func (r *NewsRepository) InTransaction(fn func(txRepo newsAgr.Repository) error) error {
 	return r.SqlxRepo.InTransaction(func(txSqlxRepo sqlxRepo.SqlxRepo) error {
-		return fn(&ChattRepository{SqlxRepo: txSqlxRepo})
+		return fn(&NewsRepository{SqlxRepo: txSqlxRepo})
 	})
 }
 

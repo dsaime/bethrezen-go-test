@@ -62,9 +62,9 @@ func initCliCommand() *cli.Command {
 		Version: fmt.Sprintf("%s (built %s)", version, buildDate),
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:        "pgsql-dsn",
-				Destination: &cfg.Pgsql.DSN,
-				Usage:       "Строка подключения PostgreSQL в формате 'postgres://user:password@host:port/dbname'",
+				Name:        "mysql-dsn",
+				Destination: &cfg.Mysql.DSN,
+				Usage:       "Строка подключения MySQL в формате 'mysql://username:password@hostname:port/database?param1=value1&param2=value2'",
 				Required:    true,
 			},
 			&cli.StringFlag{
@@ -76,8 +76,8 @@ func initCliCommand() *cli.Command {
 			&cli.StringFlag{
 				Name:        "log-level",
 				Destination: &cfg.LogLevel,
-				Usage:       "Уровень логирования. Может быть debug, info, warn, error",
-				Value:       app.LogLevelInfo,
+				Usage:       "Уровень логирования.",
+				Value:       "debug",
 			},
 		},
 	}

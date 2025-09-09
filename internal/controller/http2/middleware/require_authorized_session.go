@@ -4,14 +4,15 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-
-	findSession "newsapi/internal/usecases/sessions/find_session"
 )
 
-const CtxKeyUserSession = "userSession"
+// AuthTokenVerifier описывает интерфейс проверки токена аутентификации
+type AuthTokenVerifier interface {
+	VerifyAuthToken(token string) bool
+}
 
-// RequireAuthorizedSession требует авторизованную сессии
-func RequireAuthorizedSession(uc UsecasesForRequireAuthorizedSession) fiber.Handler {
+// RequireAuthorizedSession требует аутентификацию по Authorization заголовку
+func RequireAuthorizedSession(verifier AuthTokenVerifier) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		// Прочитать заголовок
 		header := ctx.Get("Authorization")
@@ -20,25 +21,11 @@ func RequireAuthorizedSession(uc UsecasesForRequireAuthorizedSession) fiber.Hand
 			return fiber.ErrUnauthorized
 		}
 
-		// Найти сессию по токену
-		out, err := uc.FindSessions(findSession.In{
-			Token: token,
-		})
-		if err != nil {
-			return fiber.ErrInternalServerError
-		}
-		if len(out.Sessions) != 1 {
+		// Проверить токен
+		if verifier.VerifyAuthToken(token) {
 			return fiber.ErrUnauthorized
 		}
 
-		// Сохранить сессию в контекст
-		ctx.Locals(CtxKeyUserSession, out.Sessions[0])
-
 		return ctx.Next()
 	}
-}
-
-// UsecasesForRequireAuthorizedSession определяет интерфейс для доступа к сценариям использования бизнес-логики
-type UsecasesForRequireAuthorizedSession interface {
-	FindSessions(findSession.In) (findSession.Out, error)
 }

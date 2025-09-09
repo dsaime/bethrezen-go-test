@@ -4,17 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sirupsen/logrus"
-
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
-
-	"newsapi/internal/domain/chatt"
-	"newsapi/internal/domain/sessionn"
-	"newsapi/internal/domain/userr"
-	sqlxRepo "newsapi/internal/repository/pgsql_repository/sqlx_repo"
-
+	"github.com/sirupsen/logrus"
 	"newsapi/internal/domain/newsAgr"
+	sqlxRepo "newsapi/internal/repository/mysql_repository/sqlx_repo"
 )
 
 // Config представляет собой конфигурацию репозитория
@@ -28,7 +22,7 @@ type Factory struct {
 }
 
 func InitFactory(cfg Config) (*Factory, error) {
-	conn, err := sqlx.Connect("postgres", cfg.DSN)
+	conn, err := sqlx.Connect("mysql", cfg.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("sqlx.Connect: %w", err)
 	}
@@ -73,23 +67,9 @@ func (f *Factory) Cleanup() error {
 	})
 }
 
-// NewUserrRepository создает репозиторий пользователей
-func (f *Factory) NewUserrRepository() userr.Repository {
-	return &UserrRepository{
-		SqlxRepo: sqlxRepo.New(f.db),
-	}
-}
-
-// NewChattRepository создает репозиторий чатов
-func (f *Factory) NewChattRepository() newsAgr.Repository {
-	return &ChattRepository{
-		SqlxRepo: sqlxRepo.New(f.db),
-	}
-}
-
-// NewSessionnRepository создает репозиторий сессий
-func (f *Factory) NewSessionnRepository() sessionn.Repository {
-	return &SessionnRepository{
+// NewNewsRepository создает репозиторий чатов
+func (f *Factory) NewNewsRepository() newsAgr.Repository {
+	return &NewsRepository{
 		SqlxRepo: sqlxRepo.New(f.db),
 	}
 }

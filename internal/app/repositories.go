@@ -5,30 +5,22 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"newsapi/internal/domain/chatt"
-	"newsapi/internal/domain/sessionn"
-	"newsapi/internal/domain/userr"
-	pgsqlRepository "newsapi/internal/repository/pgsql_repository"
-
 	"newsapi/internal/domain/newsAgr"
+	mysqlRepository "newsapi/internal/repository/mysql_repository"
 )
 
 type repositories struct {
-	chats    newsAgr.Repository
-	users    userr.Repository
-	sessions sessionn.Repository
+	newsRepo newsAgr.Repository
 }
 
-func initPgsqlRepositories(cfg pgsqlRepository.Config) (*repositories, func(), error) {
-	factory, err := pgsqlRepository.InitFactory(cfg)
+func initPgsqlRepositories(cfg mysqlRepository.Config) (*repositories, func(), error) {
+	factory, err := mysqlRepository.InitFactory(cfg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("pgsqlRepository.InitFactory: %w", err)
 	}
 
 	rs := &repositories{
-		chats:    factory.NewChattRepository(),
-		users:    factory.NewUserrRepository(),
-		sessions: factory.NewSessionnRepository(),
+		newsRepo: factory.NewNewsRepository(),
 	}
 
 	closer := func() {
