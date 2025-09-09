@@ -1,5 +1,9 @@
 package newsAgr
 
+import "errors"
+
+var ErrNewsNotFound = errors.New("новость с такими параметрами не существует")
+
 // Repository представляет собой интерфейс для работы с репозиторием новостей
 type Repository interface {
 	Find(Filter) (News, error)

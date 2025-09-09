@@ -7,10 +7,10 @@ import (
 	updateNews "newsapi/internal/usecases/news/update_news"
 )
 
-// UpdateNews регистрирует обработчик, позволяющий обновить параметры новости
+// EditNews регистрирует обработчик, позволяющий обновить параметры новости
 //
 // Метод: POST /edit/:Id
-func UpdateNews(router *fiber.App, uc UsecasesForUpdateNews) {
+func EditNews(router *fiber.App, uc UsecasesForUpdateNews) {
 	// Тело запроса для обновления названия чата.
 	type requestBody struct {
 		Title      string `json:"Title"`

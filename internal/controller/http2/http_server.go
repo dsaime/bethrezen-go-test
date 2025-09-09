@@ -53,7 +53,7 @@ func registerHandlers(r *fiber.App, uc RequiredUsecases) {
 	}))
 
 	registerHandler.CreateNews(r)
-	registerHandler.UpdateNews(r)
+	registerHandler.EditNews(r)
 	registerHandler.NewsList(r)
 }
 

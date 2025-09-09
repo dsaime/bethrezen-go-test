@@ -7,6 +7,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
+
 	"newsapi/internal/domain/newsAgr"
 	sqlxRepo "newsapi/internal/repository/mysql_repository/sqlx_repo"
 )

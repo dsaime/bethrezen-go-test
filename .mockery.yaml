@@ -6,5 +6,6 @@ recursive: True
 pkgname: "mock{{.SrcPackageName | camelcase | firstUpper }}"
 template: testify
 packages:
+  newsapi/internal/domain/newsAgr:
   newsapi/internal/controller/http2/middleware:
   newsapi/internal/controller/http2/register_handler:

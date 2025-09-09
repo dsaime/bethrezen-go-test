@@ -3,12 +3,13 @@ package newsAgr
 import (
 	"errors"
 	"slices"
+	"unicode"
 )
 
 var (
-	ErrEmptyTitle          = errors.New("пустой title")
-	ErrEmptyContent        = errors.New("пустой Content")
-	ErrDuplicateCategories = errors.New("повторяются категории")
+	ErrInvalidTitle      = errors.New("некорректное значение Title")
+	ErrInvalidContent    = errors.New("некорректное значение Content")
+	ErrInvalidCategories = errors.New("некорректное значение Categories")
 )
 
 // News представляет собой агрегат новости
@@ -21,14 +22,13 @@ type News struct {
 
 // NewNews создает новую новость
 func NewNews(repo Repository, title string, content string, categories []int) (News, error) {
-	if err := ValidateTitle(title); err != nil {
-		return News{}, err
-	}
-	if err := ValidateContent(content); err != nil {
-		return News{}, err
-	}
-	if err := ValidateCategories(categories); err != nil {
-		return News{}, err
+	errs := errors.Join(
+		ValidateTitle(title),
+		ValidateContent(content),
+		ValidateCategories(categories),
+	)
+	if errs != nil {
+		return News{}, errs
 	}
 
 	news := News{
@@ -49,7 +49,24 @@ func NewNews(repo Repository, title string, content string, categories []int) (N
 
 func ValidateTitle(title string) error {
 	if title == "" {
-		return ErrEmptyTitle
+		return ValidationError{
+			err:    ErrInvalidTitle,
+			reason: "пустой заголовок",
+		}
+	}
+
+	firstRune := []rune(title)[0]
+	if unicode.Is(unicode.White_Space, firstRune) {
+		return ValidationError{
+			err:    ErrInvalidTitle,
+			reason: "начинаться с пробела",
+		}
+	}
+	if unicode.Is(unicode.Lower, firstRune) {
+		return ValidationError{
+			err:    ErrInvalidTitle,
+			reason: "начинается с символа нижнего регистра",
+		}
 	}
 
 	return nil
@@ -57,7 +74,10 @@ func ValidateTitle(title string) error {
 
 func ValidateContent(content string) error {
 	if content == "" {
-		return ErrEmptyContent
+		return ValidationError{
+			err:    ErrInvalidContent,
+			reason: "пустой",
+		}
 	}
 
 	return nil
@@ -69,7 +89,10 @@ func ValidateCategories(categories []int) error {
 	}
 
 	if len(slices.Compact(categories)) != len(categories) {
-		return ErrDuplicateCategories
+		return ValidationError{
+			err:    ErrInvalidCategories,
+			reason: "повторяющиеся категории",
+		}
 	}
 
 	return nil

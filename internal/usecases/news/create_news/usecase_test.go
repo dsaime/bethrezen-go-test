@@ -1,147 +1,64 @@
 package createNews
 
 import (
-	"fmt"
-	"math/rand/v2"
 	"testing"
 
-	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	testifySuite "github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/require"
 
-	"newsapi/internal/domain/chatt"
-	"newsapi/internal/usecases/events"
-	mockEvents "newsapi/internal/usecases/events/mocks"
-	serviceSuite "newsapi/internal/usecases/suite"
+	mockNewsAgr "newsapi/internal/domain/newsAgr/mocks"
 )
 
-type testSuite struct {
-	serviceSuite.Suite
+func upsertReturnsExpected(repo *mockNewsAgr.Repository, id int) {
+	repo.On("Upsert", mock.Anything).Return(id)
 }
 
-func Test_TestSuite(t *testing.T) {
-	testifySuite.Run(t, new(testSuite))
-}
-
-func (suite *testSuite) newCreateInputRandom() In {
-	return In{
-		ChiefUserID: uuid.New(),
-		Name:        fmt.Sprintf("name%d", rand.Int()),
+func newUsecase(t *testing.T, setupMockRepo func(*mockNewsAgr.Repository)) *CreateNewsUsecase {
+	repo := mockNewsAgr.NewRepository(t)
+	if setupMockRepo != nil {
+		setupMockRepo(repo)
+	}
+	return &CreateNewsUsecase{
+		Repo: repo,
 	}
 }
 
-// Test_Chats_CreateChat тестирует создание чата
-func (suite *testSuite) Test_Chats_CreateChat() {
-	usecase := &CreateNewsUsecase{
-		Repo:          suite.RR.Chats,
-		EventConsumer: mockEvents.NewConsumer(suite.T()),
-	}
-	// Настройка мока
-	usecase.EventConsumer.(*mockEvents.Consumer).
-		On("Consume", mock.Anything).
-		Return().
-		Maybe()
-
-	suite.Run("выходящие совпадают с заданными", func() {
-		// Создать чат
-		input := suite.newCreateInputRandom()
-		out, err := usecase.CreateNews(input)
-		suite.NoError(err)
-		// Сравнить результат с входящими значениями
-		suite.Equal(input.Name, out.Chat.Name)
-		suite.Equal(input.ChiefUserID, out.Chat.ChiefID)
-	})
-
-	suite.Run("можно затем прочитать из репозитория", func() {
-		// Создать чат
-		input := suite.newCreateInputRandom()
-		out, err := usecase.CreateNews(input)
-		suite.Require().NoError(err)
-		suite.Require().NotZero(out)
-		// Получить список чатов
-		chats, err := suite.RR.Chats.List(newsAgr.Filter{})
-		suite.Require().NoError(err)
-		// В списке этот чат будет единственным
-		suite.Require().Len(chats, 1)
-		suite.Equal(out.Chat.Name, chats[0].Name)
-		suite.Equal(out.Chat.ChiefID, chats[0].ChiefID)
-	})
-
-	suite.Run("создается участник для главного администратора", func() {
-		// Создать чат
-		input := suite.newCreateInputRandom()
-		out, err := usecase.CreateNews(input)
-		suite.Require().NoError(err)
-		suite.Require().NotZero(out)
-		// Получить список участников
-		//members, err := usecase.MembersRepo.List(domain.MembersFilter{})
-		//suite.NoError(err)
-		// В списке этот участник будет единственным
-		suite.Require().Len(out.Chat.Participants, 1)
-		// Участником является главный администратор созданного чата
-		suite.Equal(input.ChiefUserID, out.Chat.Participants[0].UserID)
-	})
-
-	suite.Run("можно создать чаты с одинаковым именем", func() {
-		input := suite.newCreateInputRandom()
-		// Создать несколько чатов с одинаковым именем
-		const chatsAllCount = 2
-		for range chatsAllCount {
-			out, err := usecase.CreateNews(input)
-			suite.Require().NoError(err)
-			suite.Require().NotZero(out)
-		}
-		// Получить список чатов
-		chats, err := suite.RR.Chats.List(newsAgr.Filter{})
-		suite.NoError(err)
-		// Количество чатов равно количеству созданных
-		suite.Len(chats, chatsAllCount)
-	})
-
-	suite.Run("количество созданных чатов на одного пользователя не ограничено", func() {
-		// Пользователь
-		userID := uuid.New()
-		// Создать много чатов от лица пользователя
-		const chatsAllCount = 900
-		for range chatsAllCount {
-			out, err := usecase.CreateNews(In{
-				ChiefUserID: userID,
-				Name:        "name",
-			})
-			suite.Require().NoError(err)
-			suite.Require().NotZero(out)
-		}
-		// Получить список чатов
-		chats, err := suite.RR.Chats.List(newsAgr.Filter{})
-		suite.NoError(err)
-		// Количество чатов равно количеству созданных
-		suite.Len(chats, chatsAllCount)
-	})
-
-	suite.Run("после завершения операции, будут созданы события", func() {
-		// Новый экземпляр usecase
-		usecase := &CreateNewsUsecase{
-			Repo:          suite.RR.Chats,
-			EventConsumer: mockEvents.NewConsumer(suite.T()),
-		}
+// Test_CreateNews тестирует создание новости
+func Test_CreateNews(t *testing.T) {
+	t.Run("выходящие совпадают с заданными", func(t *testing.T) {
+		const expectedID = 53
 		// Настройка мока
-		var consumedEvents []events.Event
-		usecase.EventConsumer.(*mockEvents.Consumer).
-			On("Consume", mock.Anything).
-			Run(func(args mock.Arguments) {
-				consumedEvents = append(consumedEvents, args.Get(0).([]events.Event)...)
-			}).
-			Return()
+		usecase := newUsecase(t, func(repo *mockNewsAgr.Repository) {
+			upsertReturnsExpected(repo, expectedID)
+		})
+		// Создать Новость
+		in := In{
+			Title:      "Some title",
+			Content:    "some content",
+			Categories: []int{1, 2, 3},
+		}
+		out, err := usecase.CreateNews(in)
+		require.NoError(t, err)
+		// Сравнить результат с входящими значениями
+		assert.Equal(t, in.Title, out.News.Title)
+		assert.Equal(t, in.Content, out.News.Content)
+		assert.Equal(t, in.Categories, out.News.Categories)
+		// Тот, что вернет репозиторий
+		assert.Equal(t, expectedID, out.News.ID)
+	})
 
+	t.Run("при невалидных значениях вернет ошибки", func(t *testing.T) {
+		// Настройка мока
+		usecase := newUsecase(t, nil)
 		// Создать чат
 		out, err := usecase.CreateNews(In{
-			ChiefUserID: uuid.New(),
-			Name:        "name",
+			Title:      "",
+			Content:    "",
+			Categories: []int{1, 1},
 		})
-		suite.Require().NoError(err)
-		suite.Require().NotZero(out)
-
-		// Проверить список опубликованных событий
-		suite.AssertHasEventType(consumedEvents, newsAgr.EventChatCreatedType)
+		assert.Error(t, err)
+		assert.Zero(t, out)
 	})
+
 }

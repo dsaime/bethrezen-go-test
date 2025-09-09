@@ -19,38 +19,32 @@ type In struct {
 	Categories []int
 }
 
-// Validate валидирует значение отдельно каждого параметры
-func (in In) Validate() error {
+// validate валидирует значение отдельно каждого параметры
+func (in In) validate() error {
 	if in.ID < 1 {
 		return ErrInvalidNewsID
 	}
 
-	if in.isAllFieldEmpty() {
+	if in.isAllPropsEmpty() {
 		return ErrNothingToUpdate
 	}
 
+	var errs error
 	if in.Title != "" {
-		if err := newsAgr.ValidateTitle(in.Title); err != nil {
-			return err
-		}
+		errs = errors.Join(errs, newsAgr.ValidateTitle(in.Title))
 	}
-
 	if in.Content != "" {
-		if err := newsAgr.ValidateContent(in.Content); err != nil {
-			return err
-		}
-	}
+		errs = errors.Join(errs, newsAgr.ValidateContent(in.Content))
 
+	}
 	if len(in.Categories) != 0 {
-		if err := newsAgr.ValidateCategories(in.Categories); err != nil {
-			return err
-		}
+		errs = errors.Join(errs, newsAgr.ValidateCategories(in.Categories))
 	}
 
-	return nil
+	return errs
 }
 
-func (in In) isAllFieldEmpty() bool {
+func (in In) isAllPropsEmpty() bool {
 	return in.Title == "" &&
 		in.Content == "" &&
 		len(in.Categories) == 0
@@ -68,7 +62,7 @@ type UpdateNewsUsecase struct {
 // UpdateNews обновляет новость
 func (c *UpdateNewsUsecase) UpdateNews(in In) (Out, error) {
 	// Валидировать параметры
-	if err := in.Validate(); err != nil {
+	if err := in.validate(); err != nil {
 		return Out{}, err
 	}
 

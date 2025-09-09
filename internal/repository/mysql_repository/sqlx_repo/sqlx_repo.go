@@ -68,6 +68,7 @@ func (r SqlxRepo) InTransaction(f func(tx SqlxRepo) error) error {
 }
 
 type DB interface {
+	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
 	NamedExec(query string, arg interface{}) (sql.Result, error)
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Select(dest interface{}, query string, args ...interface{}) error
