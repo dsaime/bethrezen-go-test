@@ -8,27 +8,26 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"newsapi/internal/domain/newsAgr"
-	mockNewsAgr "newsapi/internal/domain/newsAgr/mocks"
 )
 
-func upsertReturnsSameID(repo *mockNewsAgr.Repository) *mock.Call {
+func upsertReturnsSameID(repo *newsAgr.MockRepository) *mock.Call {
 	return repo.On("Upsert", mock.Anything).
 		Return(func(n newsAgr.News) (int, error) { return n.ID, nil })
 }
 
-func inTxReturnsMock(repo *mockNewsAgr.Repository) {
+func inTxReturnsMock(repo *newsAgr.MockRepository) {
 	repo.On("InTransaction", mock.Anything).
 		Return(func(fn func(newsAgr.Repository) error) error {
 			return fn(repo)
 		})
 }
 
-func findReturnsExpected(repo *mockNewsAgr.Repository, news newsAgr.News) {
+func findReturnsExpected(repo *newsAgr.MockRepository, news newsAgr.News) {
 	repo.On("Find", mock.Anything).Return(news, nil)
 }
 
-func newUsecase(t *testing.T, setupMockRepo func(*mockNewsAgr.Repository)) *UpdateNewsUsecase {
-	repo := mockNewsAgr.NewRepository(t)
+func newUsecase(t *testing.T, setupMockRepo func(*newsAgr.MockRepository)) *UpdateNewsUsecase {
+	repo := newsAgr.NewMockRepository(t)
 	if setupMockRepo != nil {
 		setupMockRepo(repo)
 	}
@@ -47,7 +46,7 @@ func Test_UpdateNews(t *testing.T) {
 			Categories: []int{1, 2, 3},
 		}
 		// Настройка мока
-		usecase := newUsecase(t, func(repo *mockNewsAgr.Repository) {
+		usecase := newUsecase(t, func(repo *newsAgr.MockRepository) {
 			findReturnsExpected(repo, initialNews)
 			inTxReturnsMock(repo)
 			// Обновление 3х полей
@@ -84,5 +83,4 @@ func Test_UpdateNews(t *testing.T) {
 		_, err := usecase.UpdateNews(In{ID: 31})
 		assert.ErrorIs(t, err, ErrNothingToUpdate)
 	})
-
 }

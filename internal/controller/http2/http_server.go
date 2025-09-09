@@ -19,11 +19,11 @@ type Config struct {
 }
 
 // RunHttpServer запускает http сервер до момента отмена контекста
-func RunHttpServer(ctx context.Context, uc RequiredUsecases, cfg Config) error {
+func RunHttpServer(ctx context.Context, cfg Config, uc RequiredUsecases) error {
 	fiberApp := fiber.New(fiber.Config{
 		ErrorHandler: fiberErrorHandler,
 	})
-	registerHandlers(fiberApp, uc, eventListener)
+	registerHandlers(fiberApp, uc)
 
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -52,9 +52,9 @@ func registerHandlers(r *fiber.App, uc RequiredUsecases) {
 		TimeFormat: "2006-01-02 15:04:05",
 	}))
 
-	registerHandler.CreateNews(r)
-	registerHandler.EditNews(r)
-	registerHandler.NewsList(r)
+	registerHandler.CreateNews(r, uc)
+	registerHandler.EditNews(r, uc)
+	registerHandler.NewsList(r, uc)
 }
 
 // fiberErrorHandler разделяет составные ошибки и помещает в body.

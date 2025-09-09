@@ -1,9 +1,9 @@
 all: True
-dir: "{{.InterfaceDir}}/mocks"
-filename: "{{.InterfaceName | snakecase }}_mock.go"
-structname: "{{.InterfaceName | firstUpper}}"
+#dir: "{{.InterfaceDir}}/mocks"
+filename: "mocks.go"
+structname: "{{.Mock}}{{.InterfaceName | firstUpper}}"
 recursive: True
-pkgname: "mock{{.SrcPackageName | camelcase | firstUpper }}"
+#pkgname: "mock{{.SrcPackageName | camelcase | firstUpper }}"
 template: testify
 packages:
   newsapi/internal/domain/newsAgr:

@@ -26,10 +26,10 @@ func Run(ctx context.Context, cfg Config) error {
 	defer closeRepos()
 
 	// Инициализация адаптеров
-	aa := initAdapters(cfg)
+	//aa := initAdapters(cfg)
 
 	// Инициализация сервисов
-	uc := initUsecases(rr, aa)
+	uc := initUsecases(rr)
 
-	return http2.RunHttpServer(ctx, uc, aa.eventBus, cfg.Http2)
+	return http2.RunHttpServer(ctx, cfg.Http2, uc)
 }

@@ -7,15 +7,15 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	mockNewsAgr "newsapi/internal/domain/newsAgr/mocks"
+	"newsapi/internal/domain/newsAgr"
 )
 
-func upsertReturnsExpected(repo *mockNewsAgr.Repository, id int) {
+func upsertReturnsExpected(repo *newsAgr.MockRepository, id int) {
 	repo.On("Upsert", mock.Anything).Return(id)
 }
 
-func newUsecase(t *testing.T, setupMockRepo func(*mockNewsAgr.Repository)) *CreateNewsUsecase {
-	repo := mockNewsAgr.NewRepository(t)
+func newUsecase(t *testing.T, setupMockRepo func(*newsAgr.MockRepository)) *CreateNewsUsecase {
+	repo := newsAgr.NewMockRepository(t)
 	if setupMockRepo != nil {
 		setupMockRepo(repo)
 	}
@@ -29,7 +29,7 @@ func Test_CreateNews(t *testing.T) {
 	t.Run("выходящие совпадают с заданными", func(t *testing.T) {
 		const expectedID = 53
 		// Настройка мока
-		usecase := newUsecase(t, func(repo *mockNewsAgr.Repository) {
+		usecase := newUsecase(t, func(repo *newsAgr.MockRepository) {
 			upsertReturnsExpected(repo, expectedID)
 		})
 		// Создать Новость
@@ -60,5 +60,4 @@ func Test_CreateNews(t *testing.T) {
 		assert.Error(t, err)
 		assert.Zero(t, out)
 	})
-
 }

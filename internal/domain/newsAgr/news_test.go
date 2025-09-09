@@ -6,16 +6,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-
-	mockNewsAgr "newsapi/internal/domain/newsAgr/mocks"
 )
 
-func upsertReturnsExpected(repo *mockNewsAgr.Repository, id int) {
-	repo.On("Upsert", mock.Anything).Return(id)
+func upsertReturnsExpected(repo *MockRepository, id int) {
+	repo.On("Upsert", mock.Anything).Return(id, nil)
 }
 
-func newRepo(t *testing.T, setupMockRepo func(*mockNewsAgr.Repository)) Repository {
-	repo := mockNewsAgr.NewRepository(t)
+func newRepo(t *testing.T, setupMockRepo func(*MockRepository)) Repository {
+	repo := NewMockRepository(t)
 	if setupMockRepo != nil {
 		setupMockRepo(repo)
 	}
@@ -30,7 +28,7 @@ func TestNewNews(t *testing.T) {
 
 	t.Run("вернет id из репозитория", func(t *testing.T) {
 		const expectedID = 1
-		repo := newRepo(t, func(repo *mockNewsAgr.Repository) {
+		repo := newRepo(t, func(repo *MockRepository) {
 			upsertReturnsExpected(repo, expectedID)
 		})
 		news, err := NewNews(repo, "Title", "cont", []int{1})
@@ -48,13 +46,21 @@ func TestNewNews(t *testing.T) {
 
 func TestNews_UpdateCategories(t *testing.T) {
 	t.Run("возвращает обновленную новость", func(t *testing.T) {
+		repo := newRepo(t, func(repo *MockRepository) {
+			upsertReturnsExpected(repo, 53)
+		})
 		initialNews := News{
 			ID:         53,
 			Title:      "Title",
 			Content:    "cont",
 			Categories: []int{1, 2, 3},
 		}
-		initialNews.UpdateCategories()
+		updatedNews, err := initialNews.UpdateCategories(repo, []int{4, 5, 6})
+		assert.NoError(t, err)
+		assert.Equal(t, initialNews.ID, updatedNews.ID)
+		assert.Equal(t, initialNews.Title, updatedNews.Title)
+		assert.Equal(t, initialNews.Content, updatedNews.Content)
+		assert.Equal(t, []int{4, 5, 6}, updatedNews.Categories)
 	})
 }
 
@@ -99,43 +105,22 @@ func TestNews_UpdateContent(t *testing.T) {
 }
 
 func TestNews_UpdateTitle(t *testing.T) {
-	type fields struct {
-		ID         int
-		Title      string
-		Content    string
-		Categories []int
-	}
-	type args struct {
-		repo  Repository
-		title string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    News
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			n := News{
-				ID:         tt.fields.ID,
-				Title:      tt.fields.Title,
-				Content:    tt.fields.Content,
-				Categories: tt.fields.Categories,
-			}
-			got, err := n.UpdateTitle(tt.args.repo, tt.args.title)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("UpdateTitle() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("UpdateTitle() got = %v, want %v", got, tt.want)
-			}
+	t.Run("возвращает обновленную новость", func(t *testing.T) {
+		repo := newRepo(t, func(repo *MockRepository) {
+			upsertReturnsExpected(repo, 53)
 		})
-	}
+		initialNews := News{
+			ID:      53,
+			Title:   "Title",
+			Content: "cont",
+		}
+		updatedNews, err := initialNews.UpdateTitle(repo, "NewTitle")
+		assert.NoError(t, err)
+		assert.Equal(t, initialNews.ID, updatedNews.ID)
+		assert.Equal(t, "NewTitle", updatedNews.Title)
+		assert.Equal(t, initialNews.ID, updatedNews.Content)
+		assert.Equal(t, initialNews.Categories, updatedNews.Categories)
+	})
 }
 
 func TestValidateCategories(t *testing.T) {
