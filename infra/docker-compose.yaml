@@ -1,12 +1,3 @@
-#volumes:
-#  npc.pgsql.data:
-
-networks:
-  proxy:
-   external: true
-  npc.network:
-#    external: true
-
 services:
   dsaime.test.newsapi:
     container_name: dsaime.test.newsapi
