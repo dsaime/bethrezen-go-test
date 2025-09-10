@@ -10,7 +10,7 @@ http/json сервер с тремя ручками:
 - БД: mysql9.4, sqlx
 - Логирование: logrus
 - Тестирование: testify, testcontainers, mockery
-- CLI: github.com/urfave/cli/v3 v3.4.1
+- CLI: urfave/cli
 - Запуск/упаковка: Docker, Docker-compose
 
 Реализованные желания из постановки задачи:
