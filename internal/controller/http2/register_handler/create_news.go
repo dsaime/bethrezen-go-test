@@ -4,13 +4,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 	recover2 "github.com/gofiber/fiber/v2/middleware/recover"
 
+	"newsapi/internal/controller/http2/middleware"
 	createNews "newsapi/internal/usecases/news/create_news"
 )
 
 // CreateNews регистрирует обработчик, позволяющий создать новость.
 //
 // Метод: POST /create
-func CreateNews(router *fiber.App, uc UsecasesForCreateNews) {
+func CreateNews(router *fiber.App, uc UsecasesForCreateNews, verifier middleware.TokenVerifier) {
 	// Тело запроса
 	type requestBody struct {
 		Title      string `json:"Title"`
@@ -20,6 +21,7 @@ func CreateNews(router *fiber.App, uc UsecasesForCreateNews) {
 	router.Post(
 		"/create",
 		recover2.New(),
+		middleware.RequireAuthorizedSession(verifier),
 		func(ctx *fiber.Ctx) error {
 			var rb requestBody
 			// Декодируем тело запроса в структуру requestBody.

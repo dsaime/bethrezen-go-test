@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"golang.org/x/sync/errgroup"
 
+	"newsapi/internal/controller/http2/middleware"
 	registerHandler "newsapi/internal/controller/http2/register_handler"
 )
 
@@ -19,11 +20,11 @@ type Config struct {
 }
 
 // RunHttpServer запускает http сервер до момента отмена контекста
-func RunHttpServer(ctx context.Context, cfg Config, uc RequiredUsecases) error {
+func RunHttpServer(ctx context.Context, cfg Config, uc RequiredUsecases, verifier middleware.TokenVerifier) error {
 	fiberApp := fiber.New(fiber.Config{
 		ErrorHandler: fiberErrorHandler,
 	})
-	registerHandlers(fiberApp, uc)
+	registerHandlers(fiberApp, uc, verifier)
 
 	g, ctx := errgroup.WithContext(ctx)
 
@@ -46,15 +47,15 @@ func RunHttpServer(ctx context.Context, cfg Config, uc RequiredUsecases) error {
 }
 
 // registerHandlers регистрирует обработчики
-func registerHandlers(r *fiber.App, uc RequiredUsecases) {
+func registerHandlers(r *fiber.App, uc RequiredUsecases, verifier middleware.TokenVerifier) {
 	// Подключение middleware для логирования
 	r.Use(logger.New(logger.Config{
 		TimeFormat: "2006-01-02 15:04:05",
 	}))
 
-	registerHandler.CreateNews(r, uc)
-	registerHandler.EditNews(r, uc)
-	registerHandler.NewsList(r, uc)
+	registerHandler.CreateNews(r, uc, verifier)
+	registerHandler.EditNews(r, uc, verifier)
+	registerHandler.NewsList(r, uc, verifier)
 }
 
 // fiberErrorHandler разделяет составные ошибки и помещает в body.

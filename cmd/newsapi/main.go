@@ -69,8 +69,14 @@ func initCliCommand() *cli.Command {
 			&cli.StringFlag{
 				Name:        "log-level",
 				Destination: &cfg.LogLevel,
-				Usage:       "Уровень логирования.",
+				Usage:       "Уровень логирования",
 				Value:       "debug",
+			},
+			&cli.StringSliceFlag{
+				Name:        "auth-tokens",
+				Destination: &cfg.AuthTokens,
+				Usage:       "Список токенов авторизации",
+				Required:    true,
 			},
 		},
 	}

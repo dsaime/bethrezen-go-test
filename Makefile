@@ -14,6 +14,7 @@ vet:
 lint:
 	echo "Running golangci-lint with $(CORES) workers..."
 # The -j parameter for golangci-lint will use all available CPU cores minus one (to avoid overloading your system)
+	#go run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run -v -j $(CORES)
 	golangci-lint run -v -j $(CORES)
 
 # Combined target to run both vet and lint

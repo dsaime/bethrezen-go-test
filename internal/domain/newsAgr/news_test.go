@@ -23,7 +23,7 @@ func newRepo(t *testing.T, setupMockRepo func(*MockRepository)) Repository {
 func TestNewNews(t *testing.T) {
 	t.Run("вернет ошибку валидации", func(t *testing.T) {
 		_, err := NewNews(Repository(nil), "title", "", []int{1, 1})
-		assert.NoError(t, err)
+		assert.Error(t, err)
 	})
 
 	t.Run("вернет id из репозитория", func(t *testing.T) {
@@ -118,7 +118,7 @@ func TestNews_UpdateTitle(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, initialNews.ID, updatedNews.ID)
 		assert.Equal(t, "NewTitle", updatedNews.Title)
-		assert.Equal(t, initialNews.ID, updatedNews.Content)
+		assert.Equal(t, initialNews.Content, updatedNews.Content)
 		assert.Equal(t, initialNews.Categories, updatedNews.Categories)
 	})
 }

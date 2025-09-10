@@ -11,7 +11,7 @@ import (
 )
 
 func upsertReturnsExpected(repo *newsAgr.MockRepository, id int) {
-	repo.On("Upsert", mock.Anything).Return(id)
+	repo.On("Upsert", mock.Anything).Return(id, nil)
 }
 
 func newUsecase(t *testing.T, setupMockRepo func(*newsAgr.MockRepository)) *CreateNewsUsecase {

@@ -4,13 +4,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 	recover2 "github.com/gofiber/fiber/v2/middleware/recover"
 
+	"newsapi/internal/controller/http2/middleware"
 	updateNews "newsapi/internal/usecases/news/update_news"
 )
 
 // EditNews регистрирует обработчик, позволяющий обновить параметры новости
 //
 // Метод: POST /edit/:Id
-func EditNews(router *fiber.App, uc UsecasesForUpdateNews) {
+func EditNews(router *fiber.App, uc UsecasesForUpdateNews, verifier middleware.TokenVerifier) {
 	// Тело запроса
 	type requestBody struct {
 		Title      string `json:"Title"`
@@ -20,6 +21,7 @@ func EditNews(router *fiber.App, uc UsecasesForUpdateNews) {
 	router.Post(
 		"/edit/:Id",
 		recover2.New(),
+		middleware.RequireAuthorizedSession(verifier),
 		func(ctx *fiber.Ctx) error {
 			var rb requestBody
 			// Декодируем тело запроса в структуру requestBody.

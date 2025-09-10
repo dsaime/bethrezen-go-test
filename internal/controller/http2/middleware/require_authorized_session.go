@@ -6,13 +6,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// AuthTokenVerifier описывает интерфейс проверки токена аутентификации
-type AuthTokenVerifier interface {
-	VerifyAuthToken(token string) bool
+// TokenVerifier описывает интерфейс проверки токена аутентификации
+type TokenVerifier interface {
+	VerifyToken(token string) bool
 }
 
 // RequireAuthorizedSession требует аутентификацию по Authorization заголовку
-func RequireAuthorizedSession(verifier AuthTokenVerifier) fiber.Handler {
+func RequireAuthorizedSession(verifier TokenVerifier) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		// Прочитать заголовок
 		header := ctx.Get("Authorization")
@@ -22,7 +22,7 @@ func RequireAuthorizedSession(verifier AuthTokenVerifier) fiber.Handler {
 		}
 
 		// Проверить токен
-		if verifier.VerifyAuthToken(token) {
+		if !verifier.VerifyToken(token) {
 			return fiber.ErrUnauthorized
 		}
 
