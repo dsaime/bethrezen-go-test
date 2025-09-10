@@ -1,5 +1,6 @@
 package newsAgr
 
+// ValidationError представляет собой ошибку валидации поля, с указанием причины
 type ValidationError struct {
 	err    error
 	reason string

@@ -3,31 +3,36 @@ package app
 import (
 	"fmt"
 
-	"github.com/sirupsen/logrus"
-
 	"newsapi/internal/domain/newsAgr"
 	mysqlRepository "newsapi/internal/repository/mysql_repository"
 )
 
+// repositories содержит инициализированный репозитории
 type repositories struct {
+	factory  *mysqlRepository.Factory
 	newsRepo newsAgr.Repository
 }
 
-func initMysqlRepositories(cfg mysqlRepository.Config) (*repositories, func(), error) {
+func (r *repositories) Close() error {
+	if err := r.factory.Close(); err != nil {
+		return fmt.Errorf("r.factory.Close: %w", err)
+	}
+
+	return nil
+}
+
+// initMysqlRepositories инициализирует репозитории, реализованные с помощью mysql
+func initMysqlRepositories(cfg mysqlRepository.Config) (*repositories, error) {
+	// Создать фабрику репозиториев
 	factory, err := mysqlRepository.InitFactory(cfg)
 	if err != nil {
-		return nil, nil, fmt.Errorf("mysqlRepository.InitFactory: %w", err)
+		return nil, fmt.Errorf("mysqlRepository.InitFactory: %w", err)
 	}
 
 	rs := &repositories{
 		newsRepo: factory.NewNewsRepository(),
+		factory:  factory,
 	}
 
-	closer := func() {
-		if err := factory.Close(); err != nil {
-			logrus.Error("Закрыть соединение с mysql: factory.Close: " + err.Error())
-		}
-	}
-
-	return rs, closer, nil
+	return rs, nil
 }

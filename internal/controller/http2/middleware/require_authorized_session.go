@@ -26,6 +26,7 @@ func RequireAuthorizedSession(verifier TokenVerifier) fiber.Handler {
 			return fiber.ErrUnauthorized
 		}
 
+		// Выполнить следующий обработчик
 		return ctx.Next()
 	}
 }

@@ -5,9 +5,10 @@ import (
 	mysqlRepository "newsapi/internal/repository/mysql_repository"
 )
 
+// Config представляет собой композицию из конфигураций зависимостей приложения
 type Config struct {
-	Mysql      mysqlRepository.Config
-	Http2      http2.Config
-	LogLevel   string
-	AuthTokens []string
+	Mysql      mysqlRepository.Config // Настройка mysql
+	Http2      http2.Config           // Настройка сервера http
+	LogLevel   string                 // Уровень логирования
+	AuthTokens []string               // Список токенов авторизации
 }

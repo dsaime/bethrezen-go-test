@@ -9,6 +9,7 @@ import (
 	"newsapi/internal/controller/http2"
 )
 
+// Run запускает приложение
 func Run(ctx context.Context, cfg Config) error {
 	// Установить уровень логирования
 	logLevel, err := logrus.ParseLevel(cfg.LogLevel)
@@ -19,11 +20,15 @@ func Run(ctx context.Context, cfg Config) error {
 	logrus.Info(fmt.Sprintf("Уровень логирования: %s", cfg.LogLevel))
 
 	// Инициализация репозиториев
-	rr, closeRepos, err := initMysqlRepositories(cfg.Mysql)
+	rr, err := initMysqlRepositories(cfg.Mysql)
 	if err != nil {
 		return err
 	}
-	defer closeRepos()
+	defer func() {
+		if err := rr.Close(); err != nil {
+			logrus.Error("Закрыть репозитории: ", err)
+		}
+	}()
 
 	// Инициализация адаптеров
 	aa := initAdapters(cfg)
@@ -31,5 +36,6 @@ func Run(ctx context.Context, cfg Config) error {
 	// Инициализация сервисов
 	uc := initUsecases(rr)
 
+	// Запуск http сервера
 	return http2.RunHttpServer(ctx, cfg.Http2, uc, aa.TokenVerifier)
 }

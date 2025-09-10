@@ -6,6 +6,7 @@ import (
 	updateNews "newsapi/internal/usecases/news/update_news"
 )
 
+// usecasesBase содержит инициализированные usecases
 type usecasesBase struct {
 	// News
 	*createNews.CreateNewsUsecase
@@ -13,6 +14,7 @@ type usecasesBase struct {
 	*updateNews.UpdateNewsUsecase
 }
 
+// initUsecases инициализирует usecases
 func initUsecases(rr *repositories) usecasesBase {
 	return usecasesBase{
 		CreateNewsUsecase: &createNews.CreateNewsUsecase{Repo: rr.newsRepo},
