@@ -3,6 +3,7 @@ package registerHandler
 import (
 	"github.com/gofiber/fiber/v2"
 	recover2 "github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/sirupsen/logrus"
 
 	"newsapi/internal/controller/http2/middleware"
 	updateNews "newsapi/internal/usecases/news/update_news"
@@ -29,6 +30,13 @@ func EditNews(router *fiber.App, uc UsecasesForUpdateNews, verifier middleware.T
 				return err
 			}
 
+			logOldNewsFields := logrus.Fields{
+				"id":         ParamsInt(ctx, "id"),
+				"title":      rb.Title,
+				"content":    rb.Content,
+				"categories": rb.Categories,
+			}
+
 			input := updateNews.In{
 				ID:         ParamsInt(ctx, "id"),
 				Title:      rb.Title,
@@ -38,8 +46,16 @@ func EditNews(router *fiber.App, uc UsecasesForUpdateNews, verifier middleware.T
 
 			out, err := uc.UpdateNews(input)
 			if err != nil {
+				logrus.
+					WithFields(logOldNewsFields).
+					Warn("Ошибка при обновлении новости: ", err)
 				return err
 			}
+
+			logrus.
+				WithFields(logOldNewsFields).
+				WithField("new_news", out.News).
+				Info("Успешное обновление новости")
 
 			return ctx.JSON(fiber.Map{
 				"Success": true,

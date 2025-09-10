@@ -3,6 +3,7 @@ package registerHandler
 import (
 	"github.com/gofiber/fiber/v2"
 	recover2 "github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/sirupsen/logrus"
 
 	"newsapi/internal/controller/http2/middleware"
 	createNews "newsapi/internal/usecases/news/create_news"
@@ -29,6 +30,12 @@ func CreateNews(router *fiber.App, uc UsecasesForCreateNews, verifier middleware
 				return err
 			}
 
+			logNewsFields := logrus.Fields{
+				"title":      rb.Title,
+				"content":    rb.Content,
+				"categories": rb.Categories,
+			}
+
 			input := createNews.In{
 				Title:      rb.Title,
 				Content:    rb.Content,
@@ -37,8 +44,13 @@ func CreateNews(router *fiber.App, uc UsecasesForCreateNews, verifier middleware
 
 			out, err := uc.CreateNews(input)
 			if err != nil {
+				logrus.WithFields(logNewsFields).Warn("Ошибка при создании новости: ", err)
 				return err
 			}
+
+			logrus.
+				WithFields(logNewsFields).
+				Info("Успешное создание новости")
 
 			return ctx.JSON(fiber.Map{
 				"Success": true,
