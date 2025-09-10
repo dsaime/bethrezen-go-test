@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,11 +12,6 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"newsapi/internal/app"
-)
-
-var (
-	version   string
-	buildDate string
 )
 
 func main() {
@@ -59,7 +53,6 @@ func initCliCommand() *cli.Command {
 		Action: func(ctx context.Context, command *cli.Command) error {
 			return app.Run(ctx, cfg)
 		},
-		Version: fmt.Sprintf("%s (built %s)", version, buildDate),
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "mysql-dsn",

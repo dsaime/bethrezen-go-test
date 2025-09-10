@@ -1,5 +1,5 @@
 CREATE TABLE `News` (
-    `Id` bigint PRIMARY KEY,
+    `Id` bigint PRIMARY KEY AUTO_INCREMENT,
     `Title` tinytext NOT NULL,
     `Content` longtext NOT NULL
 );

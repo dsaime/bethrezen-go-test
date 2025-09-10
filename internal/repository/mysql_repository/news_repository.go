@@ -31,8 +31,9 @@ func (r *NewsRepository) List(filter newsAgr.Filter) ([]newsAgr.News, error) {
 		FROM News n
 			LEFT JOIN NewsCategories c
 				ON n.Id = c.NewsId
-		WHERE ($1 = 0 OR c.NewsId = $1)
-	`, filter.ID); err != nil {
+		WHERE (? = 0 OR c.NewsId = ?)
+		GROUP BY n.Id
+	`, filter.ID, filter.ID); err != nil {
 		return nil, err
 	}
 
@@ -63,13 +64,18 @@ func (r *NewsRepository) upsert(news newsAgr.News) (int, error) {
 	if newsDb.ID == 0 {
 		// Вставить запись и получить её ID.
 		// В newsDb.ID записывает ID созданной новости
-		if err := r.DB().Get(&newsDb.ID, `
+		res, err := r.DB().Exec(`
 			INSERT INTO News(Title, Content) 
-			VALUES ($1, $2)
-			RETURNING Id
-		`, newsDb.Title, newsDb.Content); err != nil {
+			VALUES (?, ?)
+		`, newsDb.Title, newsDb.Content)
+		if err != nil {
 			return 0, fmt.Errorf("r.DB().NamedExec: %w", err)
 		}
+		id, err := res.LastInsertId()
+		if err != nil {
+			return 0, fmt.Errorf("res.LastInsertId: %w", err)
+		}
+		newsDb.ID = int(id)
 	} else {
 		// Обновить запись
 		if _, err := r.DB().Exec(`

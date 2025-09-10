@@ -12,7 +12,7 @@ ARG VERSION="dev"
 
 ENV CGO_ENABLED=0
 ENV GOOS=linux
-RUN go build -ldflags "-X main.version=${VERSION} -X main.buildDate=$(date +"%Y-%m-%dT%H:%M:%SZ")" -o newsapi cmd/newsapi/main.go
+RUN go build -o newsapi cmd/newsapi/main.go
 
 # Final stage
 FROM alpine:latest
