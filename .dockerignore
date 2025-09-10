@@ -1,0 +1,12 @@
+**/.github
+**/.idea
+**/.vscode
+bin
+infra
+.mockery.yaml
+**/.gitignore
+**/.dockerignore
+Dockerfile
+README.md
+LICENSE
+Makefile
