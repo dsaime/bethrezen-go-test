@@ -50,7 +50,7 @@ func (in In) isAllPropsEmpty() bool {
 		len(in.Categories) == 0
 }
 
-// Out результат обновления названия чата
+// Out результат обновления новости
 type Out struct {
 	News newsAgr.News
 }

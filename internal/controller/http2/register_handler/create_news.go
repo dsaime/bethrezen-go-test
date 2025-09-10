@@ -11,7 +11,7 @@ import (
 //
 // Метод: POST /create
 func CreateNews(router *fiber.App, uc UsecasesForCreateNews) {
-	// Тело запроса для создания чата.
+	// Тело запроса
 	type requestBody struct {
 		Title      string `json:"Title"`
 		Content    string `json:"Content"`
@@ -20,10 +20,10 @@ func CreateNews(router *fiber.App, uc UsecasesForCreateNews) {
 	router.Post(
 		"/create",
 		recover2.New(),
-		func(context *fiber.Ctx) error {
+		func(ctx *fiber.Ctx) error {
 			var rb requestBody
 			// Декодируем тело запроса в структуру requestBody.
-			if err := context.BodyParser(&rb); err != nil {
+			if err := ctx.BodyParser(&rb); err != nil {
 				return err
 			}
 
@@ -38,7 +38,10 @@ func CreateNews(router *fiber.App, uc UsecasesForCreateNews) {
 				return err
 			}
 
-			return context.JSON(out)
+			return ctx.JSON(fiber.Map{
+				"Success": true,
+				"News":    out.News,
+			})
 		},
 	)
 }

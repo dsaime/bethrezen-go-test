@@ -51,7 +51,7 @@ func Test_CreateNews(t *testing.T) {
 	t.Run("при невалидных значениях вернет ошибки", func(t *testing.T) {
 		// Настройка мока
 		usecase := newUsecase(t, nil)
-		// Создать чат
+		// Создать новость
 		out, err := usecase.CreateNews(In{
 			Title:      "",
 			Content:    "",

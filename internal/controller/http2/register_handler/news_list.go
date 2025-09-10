@@ -14,13 +14,16 @@ func NewsList(router *fiber.App, uc UsecasesForNewsList) {
 	router.Get(
 		"/list",
 		recover2.New(),
-		func(context *fiber.Ctx) error {
+		func(ctx *fiber.Ctx) error {
 			out, err := uc.NewsList(newsList.In{})
 			if err != nil {
 				return err
 			}
 
-			return context.JSON(out)
+			return ctx.JSON(fiber.Map{
+				"Success": true,
+				"News":    out.News,
+			})
 		},
 	)
 }

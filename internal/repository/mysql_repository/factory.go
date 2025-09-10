@@ -68,7 +68,7 @@ func (f *Factory) Cleanup() error {
 	})
 }
 
-// NewNewsRepository создает репозиторий чатов
+// NewNewsRepository создает репозиторий новостей
 func (f *Factory) NewNewsRepository() newsAgr.Repository {
 	return &NewsRepository{
 		SqlxRepo: sqlxRepo.New(f.db),

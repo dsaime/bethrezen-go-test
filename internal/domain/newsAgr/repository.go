@@ -14,5 +14,5 @@ type Repository interface {
 
 // Filter представляет собой фильтр для выборки новостей
 type Filter struct {
-	ID int // Фильтрация по ID чата
+	ID int // Фильтрация по ID
 }

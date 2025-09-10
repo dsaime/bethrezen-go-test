@@ -11,7 +11,7 @@ import (
 //
 // Метод: POST /edit/:Id
 func EditNews(router *fiber.App, uc UsecasesForUpdateNews) {
-	// Тело запроса для обновления названия чата.
+	// Тело запроса
 	type requestBody struct {
 		Title      string `json:"Title"`
 		Content    string `json:"Content"`
@@ -39,7 +39,10 @@ func EditNews(router *fiber.App, uc UsecasesForUpdateNews) {
 				return err
 			}
 
-			return ctx.JSON(out)
+			return ctx.JSON(fiber.Map{
+				"Success": true,
+				"News":    out.News,
+			})
 		},
 	)
 }
