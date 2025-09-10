@@ -2,6 +2,7 @@ package mysqlRepository
 
 import (
 	"fmt"
+	"slices"
 
 	"newsapi/internal/domain/newsAgr"
 	sqlxRepo "newsapi/internal/repository/mysql_repository/sqlx_repo"
@@ -24,15 +25,12 @@ func (r *NewsRepository) Find(filter newsAgr.Filter) (newsAgr.News, error) {
 }
 
 func (r *NewsRepository) List(filter newsAgr.Filter) ([]newsAgr.News, error) {
-	// Запросить чаты
+	// Запросить новости
 	var news []dbNews
 	if err := r.DB().Select(&news, `
-		SELECT n.*, GROUP_CONCAT(n.title) as Categories
-		FROM News n
-			LEFT JOIN NewsCategories c
-				ON n.Id = c.NewsId
-		WHERE (? = 0 OR c.NewsId = ?)
-		GROUP BY n.Id
+		SELECT *
+		FROM News
+		WHERE (? = 0 OR Id = ?)
 	`, filter.ID, filter.ID); err != nil {
 		return nil, err
 	}
@@ -42,7 +40,34 @@ func (r *NewsRepository) List(filter newsAgr.Filter) ([]newsAgr.News, error) {
 		return nil, nil
 	}
 
-	return toDomainNews2(news), nil
+	// Собрать ID новостей
+	newsIDs := make([]any, len(news))
+	for i := range news {
+		newsIDs[i] = news[i].ID
+	}
+
+	// Создаем плейсхолдеры для IN clause
+	placeholders := slices.Repeat([]rune("?,"), len(newsIDs))
+	placeholders = placeholders[:len(placeholders)-1]
+
+	// Запросить категории
+	var categories []dbCategory
+	if err := r.DB().Select(&categories, `
+		SELECT *
+		FROM NewsCategories
+		WHERE NewsId IN (`+string(placeholders)+`)
+	`, newsIDs...); err != nil {
+		return nil, fmt.Errorf("r.DB().Select: %w", err)
+	}
+
+	categoriesMap := make(map[int][]dbCategory)
+	for _, category := range categories {
+		newsCategories := categoriesMap[category.NewsID]
+		newsCategories = append(newsCategories, category)
+		categoriesMap[category.NewsID] = newsCategories
+	}
+
+	return toDomainNews(news, categoriesMap), nil
 }
 
 func (r *NewsRepository) Upsert(news newsAgr.News) (int, error) {
@@ -78,28 +103,29 @@ func (r *NewsRepository) upsert(news newsAgr.News) (int, error) {
 		newsDb.ID = int(id)
 	} else {
 		// Обновить запись
-		if _, err := r.DB().Exec(`
-			UPDATE NewsCategories
+		if _, err := r.DB().NamedExec(`
+			UPDATE News
 			SET Title = :Title,
-				Content = :Content	
-			WHERE NewsId = :NewsId
-		`); err != nil {
+				Content = :Content
+			WHERE Id = :Id
+		`, newsDb); err != nil {
 			return 0, fmt.Errorf("r.DB().NamedExec: %w", err)
 		}
 		// Удалить прошлые категории
 		if _, err := r.DB().Exec(`
-			DELETE FROM NewsCategories WHERE NewsId = $1
+			DELETE FROM NewsCategories WHERE NewsId = ?
 		`, news.ID); err != nil {
 			return 0, fmt.Errorf("r.DB().Exec: %w", err)
 		}
 	}
 
 	// Создать категории
+	dbCategories := toDBCategories(newsDb.ID, news.Categories)
 	if len(news.Categories) > 0 {
 		if _, err := r.DB().NamedExec(`
 			INSERT INTO NewsCategories(NewsId, CategoryId)
-			VALUES (:chat_id, :user_id)
-		`, toDBCategories(news.ID, newsDb.Categories)); err != nil {
+			VALUES (:NewsId, :CategoryId)
+		`, dbCategories); err != nil {
 			return 0, fmt.Errorf("r.DB().NamedExec: %w", err)
 		}
 	}
@@ -114,10 +140,10 @@ func (r *NewsRepository) InTransaction(fn func(txRepo newsAgr.Repository) error)
 }
 
 type dbNews struct {
-	ID         int    `db:"Id"`
-	Title      string `db:"Title"`
-	Content    string `db:"Content"`
-	Categories []int  `db:"Categories"`
+	ID      int    `db:"Id"`
+	Title   string `db:"Title"`
+	Content string `db:"Content"`
+	//Categories []int  `db:"Categories"`
 }
 
 func toDBNews(news newsAgr.News) dbNews {
@@ -132,8 +158,8 @@ func toDBCategories(newsID int, domainCategories []int) []dbCategory {
 	categories := make([]dbCategory, len(domainCategories))
 	for i := range domainCategories {
 		categories[i] = dbCategory{
-			ID:     newsID,
-			NewsID: domainCategories[i],
+			ID:     domainCategories[i],
+			NewsID: newsID,
 		}
 	}
 
@@ -157,25 +183,25 @@ func toNews(
 	}
 }
 
-func toNews2(
-	news dbNews,
-) newsAgr.News {
-	return newsAgr.News{
-		ID:         news.ID,
-		Title:      news.Title,
-		Content:    news.Content,
-		Categories: news.Categories,
-	}
-}
-
-func toDomainNews2(news []dbNews) []newsAgr.News {
-	domainNews := make([]newsAgr.News, len(news))
-	for i, news1 := range news {
-		domainNews[i] = toNews2(news1)
-	}
-
-	return domainNews
-}
+//func toNews2(
+//	news dbNews,
+//) newsAgr.News {
+//	return newsAgr.News{
+//		ID:         news.ID,
+//		Title:      news.Title,
+//		Content:    news.Content,
+//		Categories: news.Categories,
+//	}
+//}
+//
+//func toDomainNews2(news []dbNews) []newsAgr.News {
+//	domainNews := make([]newsAgr.News, len(news))
+//	for i, news1 := range news {
+//		domainNews[i] = toNews2(news1)
+//	}
+//
+//	return domainNews
+//}
 
 func toDomainNews(
 	news []dbNews,

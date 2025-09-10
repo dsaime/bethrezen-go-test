@@ -1,4 +1,4 @@
-.PHONY: test vet lint check run build genmock
+.PHONY: test vet lint check run build genmock compose-up compose-build
 
 # Get number of CPU cores minus 1 for parallel execution
 CORES := $(shell echo $$(( $$(nproc) - 1 )))
@@ -29,3 +29,9 @@ build:
 
 genmock:
 	go run github.com/vektra/mockery/v3@v3.5.4
+
+compose-up:
+	docker compose -f infra/docker-compose.yaml -p infra up -d dsaime.test.newsapi
+
+compose-build:
+	docker compose -f infra/docker-compose.yaml build dsaime.test.newsapi
