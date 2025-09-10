@@ -60,7 +60,7 @@ func (f *Factory) Cleanup() error {
 
 	return sqlxRepo.New(f.db).InTransaction(func(tx sqlxRepo.SqlxRepo) error {
 		for _, table := range tables {
-			if _, err := tx.DB().Exec("DELETE FROM " + table); err != nil {
+			if _, err := tx.DB().Exec("TRUNCATE TABLE " + table); err != nil {
 				return fmt.Errorf("tx.DB().Exec: %w", err)
 			}
 		}

@@ -76,8 +76,31 @@ func (suite *Suite) TestNewsRepository() {
 		suite.Require().NoError(err)
 		suite.Require().Equal(inNews, news)
 	})
-	suite.Run("Upsert", func() {
+	suite.Run("Upsert/После вставки можно прочитать из репозитория", func() {
+		// Сделать вставку
+		id, err := suite.RR.News.Upsert(newsAgr.News{
+			Title:      "A",
+			Content:    "B",
+			Categories: []int{4, 5},
+		})
+		suite.NoError(err)
+		suite.Equal(1, id)
 
+		// Поверить новости
+		var savedNews dbNews
+		err = suite.factory.db.Get(&savedNews, `SELECT * FROM News WHERE id = ?`, id)
+		suite.NoError(err)
+		suite.Equal(1, savedNews.ID)
+		suite.Equal("A", savedNews.Title)
+		suite.Equal("B", savedNews.Content)
+
+		// Проверить категории
+		var savedCats []dbCategory
+		err = suite.factory.db.Select(&savedCats, `SELECT * FROM NewsCategories`)
+		suite.NoError(err)
+		suite.Require().Len(savedCats, 2)
+		suite.Equal(dbCategory{ID: 4, NewsID: 1}, savedCats[0])
+		suite.Equal(dbCategory{ID: 5, NewsID: 1}, savedCats[1])
 	})
 }
 
