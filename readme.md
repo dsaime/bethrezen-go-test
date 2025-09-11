@@ -58,7 +58,7 @@ make compose-build && make compose-up
 make test
 ```
 - Для тестирования mysql используется [testcontainers](https://golang.testcontainers.org/modules/mysql/)
-- Для тестирования внешней БД, надо установить переменную окружения `TEST_MYSQL_DSN`. Бд должна иметь суффикс `test_`
+- Для тестирования внешней БД, надо установить переменную окружения `TEST_MYSQL_DSN`. Бд должна иметь префикс `test_`
 
 > [!CAUTION]
 > Таблицы в тестируемой БД очищаются после каждого теста
